@@ -1,32 +1,317 @@
+// Global food data storage.
+// Keys are date strings ("YYYY-MM-DD") mapping to arrays of {food, amount}.
+let foodData = {};
+const foodDataKey = "userSave";
 
-let cities = [
-    { name: 'London', population: 8674000},
-    { name: 'New York', population: 8406000},
-    { name: 'Sydney', population: 4293000},
-    { name: 'Paris', population: 2244000},
-    { name: 'Beijing', population: 11510000}
-];
+// Global mapping from date string to its barGroup selection.
+const barGroups = {};
 
+// Color scale for food items.
+const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
-let data = [
-    [{fish: 0, meat: 100, fruit: 250}, {fish: 0, meat: 100, fruit: 250}],
-    [{fish: 0, meat: 100, fruit: 250}, {fish: 0, meat: 100, fruit: 250}],
-    [{fish: 0, meat: 100, fruit: 250}, {fish: 0, meat: 100, fruit: 250}],
-    [{fish: 0, meat: 100, fruit: 250}, {fish: 0, meat: 100, fruit: 250}],
-    [{fish: 0, meat: 100, fruit: 250}, {fish: 0, meat: 100, fruit: 250}]
-];
+// Global current month/year.
+let currentDate = new Date();
+let currentYear = currentDate.getFullYear();
+let currentMonth = currentDate.getMonth(); // 0-indexed
 
-// Join cities to rect elements and modify height, width and position
-for (let i = 0; i< data.length; i++){
-    d3.select('.bars')
-        .selectAll('rect')
-        .data(data[i])
-        .join('rect')
-        .attr('height', function(d, i){
-            return d.fruit
-        })
-        .attr('width',  75)
-        .attr('x', function(d, i2) {
-            return i2 * 75+i*75*7;
-        });
+// Save today's date as a string for highlighting.
+const todayDateStr = new Date().toISOString().split("T")[0];
+
+// Global variable for currently selected day.
+let selectedDate = null;
+
+// Layout parameters.
+const cellWidth = 100;
+const cellHeight = 120;
+const headerHeight = 30; // For weekday names.
+const padding = 5;
+
+// Vertical bar chart parameters.
+const barWidth = 15;
+const barHeight = 80; // Total height available for the stacked bar.
+
+// Get the SVG container.
+const svg = d3.select("#calendar");
+
+// Container group for the calendar content.
+let calendarGroup = svg.append("g").attr("class", "calendar-group");
+
+// Update the month label.
+function updateMonthLabel() {
+    const monthNames = [
+        "Januar", "Februar", "Marts", "April", "Maj", "Juni",
+        "Juli", "August", "September", "Oktober", "November", "December"
+    ];
+    d3.select("#monthLabel").text(`${monthNames[currentMonth]} ${currentYear}`);
 }
+updateMonthLabel();
+
+// Function to update the vertical stacked bar for a day.
+function updateVerticalBar(barGroup, data) {
+    barGroup.selectAll("*").remove();
+    const dayCell = d3.select(barGroup.node().parentNode);
+    dayCell.selectAll("text").filter((x, y) =>y !== 0).remove();
+
+    if (data.length === 0) return;
+    // Calculate the total amount for the day.
+    const totalAmount = d3.sum(data, d => d.amount);
+    // Create stacked data with cumulative y-values.
+    let cumulative = 0;
+    const stackedData = data.map(d => {
+        const y0 = cumulative;
+        cumulative += d.amount;
+        return { ...d, y0: y0, y1: cumulative };
+    });
+
+    // Data join on segments using food as the key.
+    const segments = barGroup.selectAll("g.segment")
+        .data(stackedData, d => d.food);
+
+    // ENTER: Create new segments.
+    const segEnter = segments.enter()
+        .append("g")
+        .attr("class", "segment");
+
+    segEnter.append("rect")
+        .attr("x", 0)
+        .attr("width", barWidth)
+        .attr("y", d => (cellHeight-2) * (d.y0 / totalAmount))
+        .attr("height", d => (cellHeight-2) * (d.amount / totalAmount))
+        .attr("fill", d => colorScale(d.food));
+
+    data.forEach((d, i) => {
+    dayCell.append("text")
+        .attr("x", padding+5)
+        .attr("y", padding+32+10*i)
+        .attr("class", "day-text")
+        .attr("fill", colorScale(d.food))
+        .attr("font-weight", "bold")
+        .text(d.food);
+    });
+}
+
+// Main function to render the calendar.
+function renderCalendar(year, month, dir = 1) {
+    // Calculate days and layout.
+    const firstDay = new Date(year, month, 1);
+    // Use Monday as the first day of the week.
+    const startWeekday = (firstDay.getDay() + 6) % 7;
+    // Get number of days in month.
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const totalCells = 42;  // fixed grid of 6 weeks.
+    const rows = Math.ceil(totalCells / 7);
+
+    const svgWidth = cellWidth * 7;
+    const svgHeight = headerHeight + rows * cellHeight;
+    svg.attr("width", svgWidth).attr("height", svgHeight);
+
+    // Clear previous mapping.
+    for (const key in barGroups) {
+        delete barGroups[key];
+    }
+
+    // Create a new group for the new calendar.
+    const newGroup = svg.append("g")
+        .attr("class", "calendar-group new")
+        .style("opacity", 0)
+        .attr("transform", `translate(0,${(cellHeight*5+headerHeight)*dir})`);
+
+    // Draw weekday header (using Monday as first day).
+    const weekDays = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
+    weekDays.forEach((d, i) => {
+        newGroup.append("text")
+            .attr("x", i * cellWidth + cellWidth / 2)
+            .attr("y", headerHeight / 2 + 5)
+            .attr("text-anchor", "middle")
+            .attr("font-weight", "bold")
+            .text(d);
+    });
+
+    const clipId = "clipCell";
+    let defs = svg.select("defs");
+    if (defs.empty()) {
+        defs = svg.append("defs");
+
+
+        // Append clipPath to the <defs> element of the SVG (create one if needed)
+
+
+        //if (defs.select(`#${clipId}`).empty()) {
+
+        defs.append("clipPath")
+            .attr("id", clipId)
+            .append("rect")
+            .attr("x", -cellWidth + barWidth + 2)
+            .attr("y", 1)
+            .attr("width", cellWidth - 2)
+            .attr("height", cellHeight - 2)
+            .attr("rx", 8)
+            .attr("ry", 8);
+    }
+
+    // Create cells.
+    for (let i = 0; i < totalCells; i++) {
+        const col = i % 7;
+        const row = Math.floor(i / 7);
+        const x = col * cellWidth;
+        const y = headerHeight + row * cellHeight;
+
+        const cell = newGroup.append("g")
+            .attr("transform", `translate(${x},${y})`);
+
+        // Rounded rectangle for modern look.
+        cell.append("rect")
+            .attr("width", cellWidth - 2)
+            .attr("height", cellHeight - 2)
+            .attr("x", 1)
+            .attr("y", 1)
+            .attr("stroke", "#e0e0e0")
+            .attr("rx", 8)
+            .attr("ry", 8);
+
+        // Only fill cells that represent actual days.
+        if (i >= startWeekday && i < daysInMonth + startWeekday) {
+            cell.select("rect")
+                .classed("day-rect", true);
+            const dayNum = i - startWeekday + 1;
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+            //if (!foodData[dateStr]) foodData[dateStr] = [];
+
+            // Highlight current day.
+            if (dateStr === todayDateStr) {
+                cell.classed("current-day", true);
+            }
+
+            // Create a group for the day content.
+            const dayCell = cell.append("g")
+                .attr("class", "day-cell");
+
+            // When clicked, select this day and show the input panel.
+            cell.on("click", () => {
+                // Remove the highlight from any previously selected cell.
+                d3.selectAll(".selected-day").classed("selected-day", false);
+
+                // Highlight the clicked cell.
+                cell.classed("selected-day", true);
+
+                selectedDate = dateStr;
+                d3.select("#selectedDateLabel").text(`Add food for ${dateStr}`);
+                d3.select("#foodInput").style("display", "block");
+            });
+
+            // Display the day number.
+            dayCell.append("text")
+                .attr("x", padding + 5)
+                .attr("y", padding + 12)
+                .attr("class", "day-text")
+                .attr("font-weight", dateStr === todayDateStr ? "bold" : "normal")
+                .text(dayNum);
+
+
+            // --- NEW: Define a clip path for this cell ---
+
+            //}
+            // --- End clip path definition ---
+
+            // Draw the vertical stacked bar.
+            const barGroup = dayCell.append("g")
+                .attr("transform", `translate(${(cellWidth - barWidth-1)}, ${1})`)
+                .attr("clip-path", `url(#${clipId})`);
+            if (foodData[dateStr]) updateVerticalBar(barGroup, foodData[dateStr]);
+            // Save the reference so we can update it later.
+            barGroups[dateStr] = barGroup;
+
+        }
+        else{
+            cell.select("rect")
+                .classed("day-rect", true)
+                .attr("id", "otherMonth");
+        }
+    }
+
+
+    // Transition: fade in the new calendar.
+    newGroup.transition()
+        .duration(1600)
+        .attr("transform", `translate(0,0)`)
+        .style("opacity", 1)
+        .on("end", () => {
+            calendarGroup.remove();
+            calendarGroup = newGroup.attr("class", "calendar-group");
+        });
+
+    // Fade out the old calendar.
+    calendarGroup.transition()
+        .duration(1600)
+        .style("opacity", 0)
+
+        .attr("transform",`translate(0,${(cellHeight*5-headerHeight)*-dir})`)
+        .remove();
+}
+foodData = localStorage.getItem(foodDataKey);
+foodData = foodData ? JSON.parse(foodData) : {};
+renderCalendar(currentYear, currentMonth);
+
+d3.select("#prev").on("click", () => {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    updateMonthLabel();
+    renderCalendar(currentYear, currentMonth, -1);
+});
+
+d3.select("#next").on("click", () => {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    updateMonthLabel();
+    renderCalendar(currentYear, currentMonth);
+});
+
+// Handle food input submission.
+d3.select("#submitFood").on("click", () => {
+    if (!selectedDate) return;
+    const food = d3.select("#foodName").property("value").trim();
+    const amount = parseFloat(d3.select("#foodAmount").property("value"));
+    if (!food) {
+        alert("Please enter a food name.");
+        return;
+    }
+    if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid positive number for the amount.");
+        return;
+    }
+    if (!foodData[selectedDate]) foodData[selectedDate] = [];
+    const dayFoods = foodData[selectedDate];
+    const existing = dayFoods.find(d => d.food.toLowerCase() === food.toLowerCase());
+    if (existing) {
+        existing.amount += amount;
+    } else {
+        dayFoods.push({ food, amount });
+    }
+    // Update the vertical bar for the selected day.
+    if (barGroups[selectedDate]) {
+        updateVerticalBar(barGroups[selectedDate], foodData[selectedDate]);
+    }
+
+    // Clear input fields and hide panel.
+    d3.select("#foodName").property("value", "");
+    d3.select("#foodAmount").property("value", "");
+    d3.select("#foodInput").style("display", "none");
+    selectedDate = null;
+
+    localStorage.setItem(foodDataKey, JSON.stringify(foodData));
+});
+
+// Cancel button to hide the input panel.
+d3.select("#cancelFood").on("click", () => {
+    d3.select("#foodName").property("value", "");
+    d3.select("#foodAmount").property("value", "");
+    d3.select("#foodInput").style("display", "none");
+    selectedDate = null;
+});

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kostplan</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Din kostplan</h1>
+<div>
+  <button id="prev" class="control">Forrige</button>
+  <span id="monthLabel"></span>
+  <button id="next" class="control">Næste</button>
+</div>
+<svg id="calendar"></svg>
+
+<!-- Input panel below the calendar -->
+<div id="foodInput">
+  <h3 id="selectedDateLabel"></h3>
+  <label for="foodName"></label><input id="foodName" type="text" placeholder="Food Name">
+  <label for="foodAmount"></label><input id="foodAmount" type="number" placeholder="Amount" min="0" step="any">
+  <button id="submitFood">Submit</button>
+  <button id="cancelFood" style="background:#dc3545;">Cancel</button>
+</div>
+
+<script src="js.js"></script>
+</body>
+</html>
