@@ -8,20 +8,34 @@
 </head>
 <body>
 <h1>Din kostplan</h1>
-<div>
-  <button id="prev" class="control">Forrige</button>
-  <span id="monthLabel"></span>
-  <button id="next" class="control">Næste</button>
-</div>
-<svg id="calendar"></svg>
+<div class="container">
+  <!-- Calendar Section -->
+  <div class="calendar-container">
+    <div>
+      <button id="prev" class="control">Forrige</button>
+      <span id="monthLabel"></span>
+      <button id="next" class="control">Næste</button>
+    </div>
+    <svg id="calendar"></svg>
 
-<!-- Input panel below the calendar -->
-<div id="foodInput">
-  <h3 id="selectedDateLabel"></h3>
-  <label for="foodName"></label><input id="foodName" type="text" placeholder="Food Name">
-  <label for="foodAmount"></label><input id="foodAmount" type="number" placeholder="Amount" min="0" step="any">
-  <button id="submitFood">Submit</button>
-  <button id="cancelFood" style="background:#dc3545;">Cancel</button>
+    <!-- Input panel below the calendar -->
+    <div id="foodInput">
+      <h3 id="selectedDateLabel"></h3>
+      <label for="foodName"></label><input id="foodName" type="text" placeholder="Food Name">
+      <label for="foodAmount"></label><input id="foodAmount" type="number" placeholder="Amount" min="0" step="any">
+      <button id="submitFood">Submit</button>
+      <button id="cancelFood" style="background:#dc3545;">Cancel</button>
+    </div>
+  </div>
+  <!-- Charts Section -->
+  <div class="charts-container">
+    <div class="chart-tabs">
+      <button data-chart="pie" class="active">Pie Chart</button>
+      <button data-chart="bar">Bar Chart</button>
+      <button data-chart="line">Line Chart</button>
+    </div>
+    <svg id="chartArea"></svg>
+  </div>
 </div>
 
 <script src="js.js"></script>

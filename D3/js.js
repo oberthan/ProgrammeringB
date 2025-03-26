@@ -27,7 +27,7 @@ const headerHeight = 30; // For weekday names.
 const padding = 5;
 
 // Vertical bar chart parameters.
-const barWidth = 15;
+const barWidth = 8;
 const barHeight = 80; // Total height available for the stacked bar.
 
 // Get the SVG container.
@@ -315,3 +315,160 @@ d3.select("#cancelFood").on("click", () => {
     d3.select("#foodInput").style("display", "none");
     selectedDate = null;
 });
+/* ============================
+      Chart Navigation & Rendering
+      ============================ */
+// Placeholder functions for chart drawing.
+function drawPieChart() {
+    const chartSvg = d3.select("#chartArea");
+    chartSvg.selectAll("*").remove();
+    // Use foodData to create a summary; here we use dummy data.
+    // For example, sum the total amounts per food across all days.
+    const summary = {};
+    for (const date in foodData) {
+        foodData[date].forEach(d => {
+            summary[d.food] = (summary[d.food] || 0) + d.amount;
+        });
+    }
+    const data = Object.entries(summary).map(([food, amount]) => ({food, amount}));
+
+    const width = +chartSvg.attr("width") || 400;
+    const height = +chartSvg.attr("height") || 400;
+    const radius = Math.min(width, height) / 2;
+    const g = chartSvg
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${width/2}, ${height/2})`);
+
+    const pie = d3.pie().value(d => d.amount)(data);
+    const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+    g.selectAll("path")
+        .data(pie)
+        .enter()
+        .append("path")
+        .attr("d", arc)
+        .attr("fill", d => colorScale(d.data.food))
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1);
+}
+
+function drawBarChart() {
+    const chartSvg = d3.select("#chartArea");
+    chartSvg.selectAll("*").remove();
+    // Example: Create a bar chart of total amounts per food.
+    const summary = {};
+    for (const date in foodData) {
+        foodData[date].forEach(d => {
+            summary[d.food] = (summary[d.food] || 0) + d.amount;
+        });
+    }
+    const data = Object.entries(summary).map(([food, amount]) => ({food, amount}));
+
+    const width = +chartSvg.attr("width") || 400;
+    const height = +chartSvg.attr("height") || 400;
+    const margin = {top: 20, right: 20, bottom: 30, left: 40};
+
+    chartSvg.attr("width", width).attr("height", height);
+
+    const x = d3.scaleBand()
+        .domain(data.map(d => d.food))
+        .range([margin.left, width - margin.right])
+        .padding(0.1);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.amount)]).nice()
+        .range([height - margin.bottom, margin.top]);
+
+    const g = chartSvg.append("g");
+
+    g.selectAll("rect")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("x", d => x(d.food))
+        .attr("y", d => y(d.amount))
+        .attr("width", x.bandwidth())
+        .attr("height", d => y(0) - y(d.amount))
+        .attr("fill", d => colorScale(d.food));
+
+    g.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x));
+
+    g.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y));
+}
+
+function drawLineChart() {
+    const chartSvg = d3.select("#chartArea");
+    chartSvg.selectAll("*").remove();
+    // Example: Create a line chart over days for a single food.
+    // For demonstration, we'll assume a fixed food name.
+    const foodName = "Apple";
+    const data = [];
+    // Build an array of {date: Date, amount: number} for each day in foodData.
+    for (const date in foodData) {
+        const dayTotal = foodData[date].reduce((sum, d) => {
+            return d.food.toLowerCase() === foodName.toLowerCase() ? sum + d.amount : sum;
+        }, 0);
+        if (dayTotal > 0) {
+            data.push({ date: new Date(date), amount: dayTotal });
+        }
+    }
+    data.sort((a, b) => a.date - b.date);
+
+    const width = +chartSvg.attr("width") || 400;
+    const height = +chartSvg.attr("height") || 400;
+    const margin = {top: 20, right: 20, bottom: 30, left: 40};
+
+    chartSvg.attr("width", width).attr("height", height);
+
+    const x = d3.scaleTime()
+        .domain(d3.extent(data, d => d.date))
+        .range([margin.left, width - margin.right]);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.amount)]).nice()
+        .range([height - margin.bottom, margin.top]);
+
+    const line = d3.line()
+        .x(d => x(d.date))
+        .y(d => y(d.amount));
+
+    const g = chartSvg.append("g");
+
+    g.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "#007BFF")
+        .attr("stroke-width", 2)
+        .attr("d", line);
+
+    g.append("g")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x));
+
+    g.append("g")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y));
+}
+
+// Chart navigation: when a tab is clicked, draw the corresponding chart.
+d3.selectAll(".chart-tabs button").on("click", function() {
+    d3.selectAll(".chart-tabs button").classed("active", false);
+    d3.select(this).classed("active", true);
+    const chartType = d3.select(this).attr("data-chart");
+    if (chartType === "pie") {
+        drawPieChart();
+    } else if (chartType === "bar") {
+        drawBarChart();
+    } else if (chartType === "line") {
+        drawLineChart();
+    }
+});
+
+// Initially draw the pie chart.
+drawPieChart();
