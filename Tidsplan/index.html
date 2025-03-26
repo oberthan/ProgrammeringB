@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tidsplan</title>
+</head>
+<body>
+<p>d</p>
+<script>
+
+    Notification.requestPermission()
+    let paragraf = document.querySelector('p');
+    let currentState = true;
+    function pingServer(url) {
+        const start = performance.now();
+        const img = new Image();
+        img.onload =  () => {
+            const duration = performance.now() - start;
+            console.log(`Ping time: ${duration.toFixed(2)} ms`);
+            paragraf.innerText = `Ping time: ${duration.toFixed(2)} ms`;
+            if (currentState === false) {
+                new Notification('Nu er Lectio oppe igen.')
+                currentState = true;
+            }
+
+        };
+        img.onerror = () => {
+            console.log(`Error loading`);
+            paragraf.innerText = `Error loading`;
+            if (currentState === true){
+                new Notification('Lectio er nede nu!')
+                currentState = false;
+            }
+        };
+        img.src = `${url}?t=${Date.now()}`; // Tilføjer timestamp for at undgå caching
+    }
+
+    setInterval(() => pingServer('https://www.lectio.dk/favicon.ico'), 5000);
+</script>
+</body>
+</html>

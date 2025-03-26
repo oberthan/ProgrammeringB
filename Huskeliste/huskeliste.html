@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="huskeliste.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js" integrity="sha512-bcfltY+lNLlNxz38yBBm/HLaUB1gTV6I0e+fahbF9pS6roIdzUytozWdnFV8ZnM6cSAG5EbmO0ag0a/fLZSG4Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Huske...</title>
+</head>
+<body>
+    <div class="beholder">
+        <h1 class="header">HUSKETING</h1>
+        <div id="main1">
+            <p>vigtige ting</p>
+            <ul class="ulElementer" id="main1UL">
+                <!-- plads til ting at gøre -->
+            </ul>
+        </div>
+        <div id="main2">
+            <p>rare ting</p>
+            <ul class="ulElementer" id="main2UL">
+                <!-- plads til ting at gøre, li-elementer -->
+            </ul>
+        </div>
+        <form id="input1">
+            <input type="text" name="nyTing" placeholder="husk vigtig ting...">
+        </form>
+        <form id="input2">
+            <input type="text" name="nyTing" placeholder="husk ting...">
+        </form>
+        <button id="gem" onclick="gemLokalt()">gem</button>
+    </div>
+    <script src="huskeliste.js"></script>
+    <script src="huskelistep5.js"></script>
+</body>
+</html>

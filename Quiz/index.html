@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz!!!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: white;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #333;
+    }
+    .question {
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    .choices {
+      margin-right: 10px;
+    }
+    .button-container {
+      position: relative;
+      margin-top: 20px;
+      height: 50px; /* adjust as needed */
+    }
+    .button-container input[type="submit"] {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+      display: block;
+      margin: 0 auto;
+    }
+    .button-container button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    .button-container button:hover,
+    .button-container input[type="submit"]:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+<h1>Quiz</h1>
+<form class="container" id="quizForm"></form>
+<script src="loadJson.js"></script>
+</body>
+</html>

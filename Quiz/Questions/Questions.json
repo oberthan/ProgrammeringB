@@ -1,0 +1,16 @@
+{
+  "header": {
+
+  },
+  "levels": [
+    [ {"question":  "Hvad hedder du", "choices":  ["Joergen", "Kasper"], "question_name": "navn", "answer": ""},
+      {"question":  "Hvor gammel er Jorden", "choices":  ["13 [r", "1083429 [r", "20 milliarder [r"], "question_name": "jordalder", "answer": ""},
+      {"question":  "Hvad hedder du", "choices":  ["Joergen", "Kasper"], "question_name": "navn2", "answer": ""},
+      {"question":  "Hvad hedder du", "choices":  ["Joergen", "Kasper"], "question_name": "navn3", "answer": "Sm9lcmdlbg=="}],
+
+    [ {"question":  "Hvad  du", "choices":  ["boerge", "Kasper"], "question_name": "navn", "answer": ""},
+      {"question":  "Hvor gammel er du", "choices":  ["18 [r", "1083429 [r", "17 [r"], "question_name": "jordalder", "answer": ""},
+      {"question":  "Hvem er du", "choices":  ["din mor", "E-kitten"], "question_name": "navn2", "answer": ""},
+      {"question":  "Hvornaar du", "choices":  ["om tusinde [r", "i gaar"], "question_name": "navn3", "answer": "Sm9lcmdlbg=="}]
+  ]
+}
