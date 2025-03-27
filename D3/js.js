@@ -46,6 +46,72 @@ function updateMonthLabel() {
 }
 updateMonthLabel();
 
+
+function loadFoodDatabase(url) {
+    ShowLoading(true);
+    fetch(url)
+        .then(response => response.arrayBuffer())
+        .then(data => {
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[1];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            ShowLoading(false);
+            processFoodData(jsonData);
+        })
+        .catch(error => console.error("Error loading database:", error));
+}
+
+function processFoodData(jsonData) {
+    // Assume each record in jsonData has keys such as FoodID, FoodName, and Nutrients.
+    // Create a mapping from FoodID to nutrient data, e.g.:
+    window.foodDatabase = {};
+    jsonData.forEach(record => {
+        // Standardize the food name (and FoodID) as needed.
+        window.foodDatabase[record.FoodID] = record;
+    });
+    // Create a list of items for the searchable dropdown.
+    window.foodList = jsonData.map(record => ({
+        id: record.FoodID,
+        text: record.FoodName
+    }));
+    initFoodDropdown(window.foodList);
+}
+loadFoodDatabase('Frida_5.3_November2024_Dataset.xlsx');
+
+function initFoodDropdown(foodList) {
+    $('#foodDropdown').select2({
+        data: foodList,
+        placeholder: 'Search for a food...',
+        allowClear: true
+    });
+
+    // When a food is selected, store its FoodID and look up nutrient data.
+    $('#foodDropdown').on('select2:select', function (e) {
+        const selectedFoodID = e.params.data.id;
+        console.log("Selected FoodID:", selectedFoodID);
+        // Save FoodID to storage or global variable if needed.
+        localStorage.setItem('selectedFoodID', selectedFoodID);
+        displayNutrients(selectedFoodID);
+    });
+}
+function displayNutrients(foodID) {
+    const foodRecord = window.foodDatabase[foodID];
+    if (!foodRecord) {
+        console.error("No record found for FoodID:", foodID);
+        return;
+    }
+    // Assume foodRecord.Nutrients is an object (or string) with nutrient info.
+    // Display the nutrient data in your page (e.g., in an element with id "nutrientDisplay").
+    const nutrientInfo = foodRecord.Nutrients;
+    // Customize the display as needed:
+    document.getElementById("nutrientDisplay").innerHTML = `
+    <h3>${foodRecord.FoodName}</h3>
+    <p>${JSON.stringify(nutrientInfo, null, 2)}</p>
+  `;
+}
+
+
 // Function to update the vertical stacked bar for a day.
 function updateVerticalBar(barGroup, data) {
     barGroup.selectAll("*").remove();
@@ -402,6 +468,10 @@ function drawBarChart() {
         .call(d3.axisLeft(y));
 }
 
+/*// ------------------
+    Multiple linecharts in the same chart:
+    https://observablehq.com/@d3/multi-line-chart/2
+ */// -----------------
 function drawLineChart() {
     const chartSvg = d3.select("#chartArea");
     chartSvg.selectAll("*").remove();
@@ -416,6 +486,7 @@ function drawLineChart() {
         }, 0);
         if (dayTotal > 0) {
             data.push({ date: new Date(date), amount: dayTotal });
+
         }
     }
     data.sort((a, b) => a.date - b.date);
@@ -472,3 +543,8 @@ d3.selectAll(".chart-tabs button").on("click", function() {
 
 // Initially draw the pie chart.
 drawPieChart();
+
+function ShowLoading(val) {
+    let loaderContainer = document.getElementById("loadHolder");
+    loaderContainer.style.display = val?"block":"none";
+}
