@@ -22,11 +22,19 @@
     <!-- Input panel below the calendar -->
     <div id="foodInput">
       <h3 id="selectedDateLabel"></h3>
-      <label for="foodName"></label><input id="foodName" placeholder="Food Name" type="text">
-      <label for="foodAmount"></label><input id="foodAmount" min="0" placeholder="Amount" step="any" type="number">
+      <div id="foodInput-container">
+        <div class="foodName-container">
+          <label for="foodName"></label>
+          <input id="foodName" placeholder="Food Name" type="text" onkeyup="initFoodDropdown()">
+          <div class="food-options">
+
+          </div>
+        </div>
+        <label for="foodAmount"></label>
+        <input id="foodAmount" min="0" placeholder="Amount" step="any" type="number">
+      </div>
       <button id="submitFood">Submit</button>
       <button id="cancelFood" style="background:#dc3545;">Cancel</button>
-      <label for="foodDropdown">dropdown</label><select id="foodDropdown" style="width: 300px"></select>
     </div>
   </div>
   <!-- Charts Section -->
