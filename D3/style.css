@@ -127,6 +127,39 @@ svg {
 #foodInput button:hover {
     background: #218838;
 }
+#foodInput-container {
+    display: flex;
+    gap: 10px; /* Adds spacing between inputs */
+    align-items: center; /* Aligns inputs vertically */
+}
+
+.foodName-container {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.food-options {
+    display: block;
+    gap: 10px;
+    margin-top: 5px;
+    overflow-y: scroll;
+    width: 100%;
+}
+
+.food-options a {
+    background: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    width: 100%;
+
+}
+
+.food-options a:hover {
+    background: #ddd;
+}
 
 .loader {
 

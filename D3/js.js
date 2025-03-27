@@ -3,6 +3,8 @@
 let foodData = {};
 const foodDataKey = "userSave";
 
+let foodDatabase = {};
+
 // Global mapping from date string to its barGroup selection.
 const barGroups = {};
 
@@ -57,6 +59,7 @@ function loadFoodDatabase(url) {
             const worksheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
             ShowLoading(false);
+            console.log(jsonData);
             processFoodData(jsonData);
         })
         .catch(error => console.error("Error loading database:", error));
@@ -65,34 +68,38 @@ function loadFoodDatabase(url) {
 function processFoodData(jsonData) {
     // Assume each record in jsonData has keys such as FoodID, FoodName, and Nutrients.
     // Create a mapping from FoodID to nutrient data, e.g.:
-    window.foodDatabase = {};
-    jsonData.forEach(record => {
+    foodDatabase = jsonData;
+    foodDatabase.shift();
+    foodDatabase.shift();
+    foodDatabase.shift();
+/*    jsonData.forEach((record, i) => {
         // Standardize the food name (and FoodID) as needed.
-        window.foodDatabase[record.FoodID] = record;
-    });
+        if (i>2) {
+            foodDatabase[record['FoodID']] = record;
+        }
+    });*/
     // Create a list of items for the searchable dropdown.
-    window.foodList = jsonData.map(record => ({
+    /*window.foodList = jsonData.map(record => ({
         id: record.FoodID,
         text: record.FoodName
-    }));
-    initFoodDropdown(window.foodList);
+    }));*/
+    //initFoodDropdown(foodDatabase);
 }
 loadFoodDatabase('Frida_5.3_November2024_Dataset.xlsx');
 
-function initFoodDropdown(foodList) {
-    $('#foodDropdown').select2({
-        data: foodList,
-        placeholder: 'Search for a food...',
-        allowClear: true
-    });
+function initFoodDropdown() {
+    const search = d3.select("#foodName").property("value").toLowerCase();
+    let foodOptions = document.querySelector(".food-options");
+    foodOptions.innerHTML = "";
 
-    // When a food is selected, store its FoodID and look up nutrient data.
-    $('#foodDropdown').on('select2:select', function (e) {
-        const selectedFoodID = e.params.data.id;
-        console.log("Selected FoodID:", selectedFoodID);
-        // Save FoodID to storage or global variable if needed.
-        localStorage.setItem('selectedFoodID', selectedFoodID);
-        displayNutrients(selectedFoodID);
+    foodDatabase.forEach((foodItem) => {
+        if (foodItem["FoedevareNavn"].toLowerCase().includes(search) || foodItem["FoodName"].toLowerCase().includes(search) ){
+            console.log("Found one!", foodItem["FoodName"]);
+            var el = document.createElement("a");
+            el.textContent = foodItem['FoedevareNavn'];
+            foodOptions.append(el);
+            //foodOptions.append(document.createElement("br"));
+        }
     });
 }
 function displayNutrients(foodID) {
@@ -208,12 +215,12 @@ function renderCalendar(year, month, dir = 1) {
         defs.append("clipPath")
             .attr("id", clipId)
             .append("rect")
-            .attr("x", -cellWidth + barWidth + 2)
+            .attr("x", -cellWidth + barWidth +3)
             .attr("y", 1)
-            .attr("width", cellWidth - 2)
-            .attr("height", cellHeight - 2)
-            .attr("rx", 8)
-            .attr("ry", 8);
+            .attr("width", cellWidth - 4)
+            .attr("height", cellHeight - 4)
+            .attr("rx", 7)
+            .attr("ry", 7);
     }
 
     // Create cells.
