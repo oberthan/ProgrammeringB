@@ -50,7 +50,7 @@ updateMonthLabel();
 
 
 function loadFoodDatabase(url) {
-    ShowLoading(true);
+    ShowLoading(true, "Loading Database");
     fetch(url)
         .then(response => response.arrayBuffer())
         .then(data => {
@@ -61,6 +61,7 @@ function loadFoodDatabase(url) {
             ShowLoading(false);
             console.log(jsonData);
             processFoodData(jsonData);
+            renderCalendar(currentYear, currentMonth);
         })
         .catch(error => console.error("Error loading database:", error));
 }
@@ -93,10 +94,12 @@ function initFoodDropdown() {
     foodOptions.innerHTML = "";
 
     foodDatabase.forEach((foodItem) => {
-        if (foodItem["FoedevareNavn"].toLowerCase().includes(search) || foodItem["FoodName"].toLowerCase().includes(search) ){
+        let foedevareNavn = foodItem['FoedevareNavn'];
+        if (foedevareNavn.toLowerCase().includes(search) || foodItem["FoodName"].toLowerCase().includes(search) ){
             console.log("Found one!", foodItem["FoodName"]);
-            var el = document.createElement("a");
-            el.textContent = foodItem['FoedevareNavn'];
+            var el = document.createElement("div");
+            el.textContent = foedevareNavn;
+            el.onclick = function() {d3.select("#foodName").property("value", foedevareNavn);};
             foodOptions.append(el);
             //foodOptions.append(document.createElement("br"));
         }
@@ -159,7 +162,7 @@ function updateVerticalBar(barGroup, data) {
         .attr("class", "day-text")
         .attr("fill", colorScale(d.food))
         .attr("font-weight", "bold")
-        .text(d.food);
+        .text(foodDatabase.filter(it => it["FoodID"] === d.food)[0]["FoedevareNavn"]);
     });
 }
 
@@ -324,7 +327,6 @@ function renderCalendar(year, month, dir = 1) {
 }
 foodData = localStorage.getItem(foodDataKey);
 foodData = foodData ? JSON.parse(foodData) : {};
-renderCalendar(currentYear, currentMonth);
 
 d3.select("#prev").on("click", () => {
     currentMonth--;
@@ -351,8 +353,13 @@ d3.select("#submitFood").on("click", () => {
     if (!selectedDate) return;
     const food = d3.select("#foodName").property("value").trim();
     const amount = parseFloat(d3.select("#foodAmount").property("value"));
+    const dbItem = foodDatabase.filter(item => item["FoedevareNavn"].trim() === food || item["FoodName"].trim() === food )[0];
     if (!food) {
         alert("Please enter a food name.");
+        return;
+    }
+    else if(!dbItem){
+        alert("Please choose a valid food name.");
         return;
     }
     if (isNaN(amount) || amount <= 0) {
@@ -360,12 +367,13 @@ d3.select("#submitFood").on("click", () => {
         return;
     }
     if (!foodData[selectedDate]) foodData[selectedDate] = [];
+    const fId = dbItem["FoodID"];
     const dayFoods = foodData[selectedDate];
-    const existing = dayFoods.find(d => d.food.toLowerCase() === food.toLowerCase());
+    const existing = dayFoods.find(d => d.food === fId);
     if (existing) {
         existing.amount += amount;
     } else {
-        dayFoods.push({ food, amount });
+        dayFoods.push({ "food":fId, amount });
     }
     // Update the vertical bar for the selected day.
     if (barGroups[selectedDate]) {
@@ -422,7 +430,7 @@ function drawPieChart() {
         .enter()
         .append("path")
         .attr("d", arc)
-        .attr("fill", d => colorScale(d.data.food))
+        .attr("fill", d => colorScale(Number(d.data.food)))
         .attr("stroke", "#fff")
         .attr("stroke-width", 1);
 }
@@ -551,7 +559,14 @@ d3.selectAll(".chart-tabs button").on("click", function() {
 // Initially draw the pie chart.
 drawPieChart();
 
-function ShowLoading(val) {
+function ShowLoading(val, text = '') {
     let loaderContainer = document.getElementById("loadHolder");
     loaderContainer.style.display = val?"block":"none";
+
+    let message = loaderContainer.children[1];
+    message.innerHTML = text;
+    if (text !== '') {message.style.paddingTop = "0.75em";}
+    else {message.style.paddingTop = "0";}
+
+
 }

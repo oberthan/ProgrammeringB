@@ -30,11 +30,13 @@
 
           </div>
         </div>
-        <label for="foodAmount"></label>
-        <input id="foodAmount" min="0" placeholder="Amount" step="any" type="number">
+        <div>
+          <label for="foodAmount"></label>
+          <input id="foodAmount" min="0" placeholder="Amount" step="any" type="number">
+          <button id="submitFood">Submit</button>
+          <button id="cancelFood" style="background:#dc3545;">Cancel</button>
+        </div>
       </div>
-      <button id="submitFood">Submit</button>
-      <button id="cancelFood" style="background:#dc3545;">Cancel</button>
     </div>
   </div>
   <!-- Charts Section -->
@@ -59,6 +61,7 @@ box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 display: block;">
 
   <div class="loader"></div>
+  <div></div>
 </div>
 
 <script src="js.js"></script>
