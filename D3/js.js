@@ -542,6 +542,154 @@ function drawLineChart() {
         .call(d3.axisLeft(y));
 }
 
+function nutrientsChart() {
+    const chartSvg = d3.select("#chartArea");
+    chartSvg.selectAll("*").remove();
+    // Use foodData to create a summary; here we use dummy data.
+    // For example, sum the total amounts per food across all days.
+    const summary = {};
+    for (const date in foodData) {
+        foodData[date].forEach(d => {
+            summary[d.food] = (summary[d.food] || 0) + d.amount;
+        });
+    }
+    const data = Object.entries(summary).map(([food, amount]) => ({food, amount}));
+
+    const width = +chartSvg.attr("width") || 400;
+    const height = +chartSvg.attr("height") || 400;
+    const radius = Math.min(width, height) / 2;
+    const g = chartSvg
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${width/2}, ${height/2})`);
+
+    const pie = d3.pie().value(d => d.amount)(data);
+    const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+    g.selectAll("path")
+        .data(pie)
+        .enter()
+        .append("path")
+        .attr("d", arc)
+        .attr("fill", d => colorScale(Number(d.data.food)))
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1);
+}
+
+function FoodCategoryChart(){
+    const chartSvg = d3.select("#chartArea");
+    chartSvg.selectAll("*").remove();
+
+    // Specify the chart’s dimensions.
+    const width = +chartSvg.attr("width") || 400;
+    const height = +chartSvg.attr("height") || 400;
+    const radius = Math.min(width, height) / 2;
+    const marginTop = 10;
+    const marginRight = 10;
+    const marginBottom = 20;
+    const marginLeft = 40;
+
+
+
+//    const data = Object.entries(summary).map(([food, amount]) => ({food, amount}));
+
+    const transformed = [];
+
+    console.log(foodData);
+    for (const date in foodData) {
+        // Iterate over each food entry for the given date
+        foodData[date].forEach(item => {
+            // Find the food record in the foodDatabase by matching FoodID with the stored food id
+            const foodRecord = foodDatabase.find(f => f["FoodID"] === item.food);
+            if (foodRecord) {
+                // Create a new object with the required properties
+                transformed.push({
+                    date: date,
+                    FoodGroup: foodRecord.FoodGroup,
+                    amount: item.amount
+                });
+                console.log(transformed[transformed.length-1]);
+            } else {
+                // Optionally handle the case where a food id isn't found in the database
+                console.warn(`Food with ID ${item.food} not found in the database.`);
+            }
+        });
+    }
+    console.log(transformed);
+
+    transformed.forEach(d => {
+        d.date = new Date(d.date);
+    });
+
+    // Determine the series that need to be stacked.
+    const series = d3.stack()
+        .keys(d3.union(transformed.map(d => d.FoodGroup))) // distinct series keys, in input order
+        .value(([, D], key) => {
+            const entry = D.get(key);
+            return entry ? entry.amount : 0;
+        })
+        (d3.index(transformed, d => d.date, d => d.FoodGroup));
+
+
+    // Prepare the scales for positional and color encodings.
+    const x = d3.scaleUtc()
+        .domain(d3.extent(transformed, d => d.date))
+        .range([marginLeft, width - marginRight]);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+        .rangeRound([height - marginBottom, marginTop]);
+
+    const color = d3.scaleOrdinal()
+        .domain(series.map(d => d.key))
+        .range(d3.schemeTableau10);
+
+    // Construct an area shape.
+    const area = d3.area()
+        .x(d => x(d.data[0]))
+        .y0(d => y(d[0]))
+        .y1(d => y(d[1]));
+
+    // Create the SVG container.
+    chartSvg.attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height])
+        .attr("style", "max-width: 100%; height: auto;");
+
+    // Add the y-axis, remove the domain line, add grid lines and a label.
+    chartSvg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(y).ticks(height / 80))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.selectAll(".tick line").clone()
+            .attr("x2", width - marginLeft - marginRight)
+            .attr("stroke-opacity", 0.1))
+        .call(g => g.append("text")
+            .attr("x", -marginLeft)
+            .attr("y", 10)
+            .attr("fill", "currentColor")
+            .attr("text-anchor", "start")
+            .text("↑ Gram"));
+
+    // Append a path for each series.
+    chartSvg.append("g")
+        .selectAll()
+        .data(series)
+        .join("path")
+        .attr("fill", d => colorScale(d.key))
+        .attr("d", area)
+        .append("title")
+        .text(d => d.key);
+
+    // Append the horizontal axis atop the area.
+    chartSvg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x).tickSizeOuter(0));
+
+}
+
+
 // Chart navigation: when a tab is clicked, draw the corresponding chart.
 d3.selectAll(".chart-tabs button").on("click", function() {
     d3.selectAll(".chart-tabs button").classed("active", false);
@@ -553,7 +701,12 @@ d3.selectAll(".chart-tabs button").on("click", function() {
         drawBarChart();
     } else if (chartType === "line") {
         drawLineChart();
+    } else if (chartType === "nutrients"){
+        nutrientsChart()
+    } else if (chartType === "foodCategory"){
+        FoodCategoryChart()
     }
+
 });
 
 // Initially draw the pie chart.
