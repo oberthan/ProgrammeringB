@@ -23,8 +23,8 @@ const todayDateStr = new Date().toISOString().split("T")[0];
 let selectedDate = null;
 
 // Layout parameters.
-const cellWidth = 100;
-const cellHeight = 120;
+const cellWidth = 75;
+const cellHeight = 90;
 const headerHeight = 30; // For weekday names.
 const padding = 5;
 
@@ -49,7 +49,7 @@ function updateMonthLabel() {
 updateMonthLabel();
 
 
-function loadFoodDatabase(url) {
+async function loadFoodDatabase(url) {
     ShowLoading(true, "Loading Database");
     fetch(url)
         .then(response => response.arrayBuffer())

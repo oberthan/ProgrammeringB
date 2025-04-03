@@ -20,22 +20,26 @@
     <svg id="calendar"></svg>
 
     <!-- Input panel below the calendar -->
-    <div id="foodInput">
-      <h3 id="selectedDateLabel"></h3>
-      <div id="foodInput-container">
-        <div class="foodName-container">
-          <label for="foodName"></label>
-          <input id="foodName" placeholder="Food Name" type="text" onkeyup="initFoodDropdown()">
-          <div class="food-options">
 
-          </div>
+  </div>
+  <div style="grid-area: list; background-color: white;">
+
+  </div>
+  <div id="foodInput">
+    <h3 id="selectedDateLabel"></h3>
+    <div id="foodInput-container">
+      <div class="foodName-container">
+        <label for="foodName"></label>
+        <input id="foodName" placeholder="Food Name" type="text" onkeyup="initFoodDropdown()">
+        <div class="food-options">
+
         </div>
-        <div>
-          <label for="foodAmount"></label>
-          <input id="foodAmount" min="0" placeholder="Amount" step="any" type="number">
-          <button id="submitFood">Submit</button>
-          <button id="cancelFood" style="background:#dc3545;">Cancel</button>
-        </div>
+      </div>
+      <div>
+        <label for="foodAmount"></label>
+        <input id="foodAmount" min="0" placeholder="Amount" step="any" type="number">
+        <button id="submitFood">Submit</button>
+        <button id="cancelFood" style="background:#dc3545;">Cancel</button>
       </div>
     </div>
   </div>
