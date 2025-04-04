@@ -23,8 +23,8 @@ const todayDateStr = new Date().toISOString().split("T")[0];
 let selectedDate = null;
 
 // Layout parameters.
-const cellWidth = 75;
-const cellHeight = 90;
+const cellWidth = window.innerWidth * 0.27/7;
+const cellHeight = cellWidth*1.2;
 const headerHeight = 30; // For weekday names.
 const padding = 5;
 
@@ -585,8 +585,8 @@ function FoodCategoryChart(){
     const width = chartSvg.attr("width") || 800;
     const height = chartSvg.attr("height") || 800;
     const marginTop = 10;
-    const marginRight = 10;
-    const marginBottom = 20;
+    const marginRight = 30;
+    const marginBottom = 30;
     const marginLeft = 40;
 
 
