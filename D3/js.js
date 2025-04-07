@@ -50,20 +50,31 @@ updateMonthLabel();
 
 
 async function loadFoodDatabase(url) {
-    ShowLoading(true, "Loading Database");
-    fetch(url)
-        .then(response => response.arrayBuffer())
-        .then(data => {
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[1];
-            const worksheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
-            ShowLoading(false);
-            console.log(jsonData);
-            processFoodData(jsonData);
-            renderCalendar(currentYear, currentMonth);
-        })
-        .catch(error => console.error("Error loading database:", error));
+    let localDatabase = localStorage.getItem("localDatabase");
+    if (localDatabase){
+        foodDatabase = JSON.parse(localDatabase);
+        ShowLoading(false);
+        renderCalendar(currentYear, currentMonth);
+    }else {
+
+        ShowLoading(true, "Loading Database");
+        fetch(url)
+            .then(response => response.arrayBuffer())
+            .then(data => {
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheetName = workbook.SheetNames[1];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                ShowLoading(false);
+                console.log(jsonData);
+                processFoodData(jsonData);
+                renderCalendar(currentYear, currentMonth);
+            })
+            .catch(error => console.error("Error loading database:", error));
+    }
+}
+function saveFoodDatabase(){
+    localStorage.setItem("localDatabase", JSON.stringify(foodDatabase));
 }
 
 function processFoodData(jsonData) {
@@ -86,6 +97,10 @@ function processFoodData(jsonData) {
     }));*/
     //initFoodDropdown(foodDatabase);
 }
+
+foodData = localStorage.getItem(foodDataKey);
+foodData = foodData ? JSON.parse(foodData) : {};
+
 loadFoodDatabase('Frida_5.3_November2024_Dataset.xlsx');
 
 function initFoodDropdown() {
@@ -104,21 +119,6 @@ function initFoodDropdown() {
             //foodOptions.append(document.createElement("br"));
         }
     });
-}
-function displayNutrients(foodID) {
-    const foodRecord = window.foodDatabase[foodID];
-    if (!foodRecord) {
-        console.error("No record found for FoodID:", foodID);
-        return;
-    }
-    // Assume foodRecord.Nutrients is an object (or string) with nutrient info.
-    // Display the nutrient data in your page (e.g., in an element with id "nutrientDisplay").
-    const nutrientInfo = foodRecord.Nutrients;
-    // Customize the display as needed:
-    document.getElementById("nutrientDisplay").innerHTML = `
-    <h3>${foodRecord.FoodName}</h3>
-    <p>${JSON.stringify(nutrientInfo, null, 2)}</p>
-  `;
 }
 
 
@@ -164,6 +164,26 @@ function updateVerticalBar(barGroup, data) {
         .attr("font-weight", "bold")
         .text(foodDatabase.filter(it => it["FoodID"] === d.food)[0]["FoedevareNavn"]);
     });
+}
+
+function setCRUDList() {
+    let fooda = foodData[selectedDate];
+
+    let listDiv = document.querySelector(".current-day-foods");
+    listDiv.innerHTML = '';
+
+    fooda.forEach(d => {
+        let element = document.createElement("div");
+        listDiv.append(element);
+        let f = foodDatabase.find(f => f["FoodID"] === d.food)
+        element.innerText = f.FoedevareNavn.split(",")[0];
+        element.classList.add('food-on-list');
+
+        let amountElement = document.createElement("div");
+        element.append(amountElement);
+        amountElement.classList.add('food-list-control');
+
+    })
 }
 
 // Main function to render the calendar.
@@ -274,6 +294,8 @@ function renderCalendar(year, month, dir = 1) {
                 selectedDate = dateStr;
                 d3.select("#selectedDateLabel").text(`Add food for ${dateStr}`);
                 d3.select("#foodInput").style("display", "block");
+
+                setCRUDList()
             });
 
             // Display the day number.
@@ -325,8 +347,6 @@ function renderCalendar(year, month, dir = 1) {
         .attr("transform",`translate(0,${(cellHeight*5-headerHeight)*-dir})`)
         .remove();
 }
-foodData = localStorage.getItem(foodDataKey);
-foodData = foodData ? JSON.parse(foodData) : {};
 
 d3.select("#prev").on("click", () => {
     currentMonth--;

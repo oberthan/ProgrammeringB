@@ -206,6 +206,30 @@ svg {
     background: #ddd;
 }
 
+.current-day-foods {
+    background-color: #f3f3f3;
+    height: 100%;
+    width: auto;
+    border-radius: 5px;
+    padding: 5px;
+    /*min-height: max-content;*/
+}
+.food-on-list {
+    background-color: white;
+    font-size: smaller;
+    padding: 15px;
+    margin-bottom: 2px;
+    border-radius: 2px;
+    text-align: left;
+}
+.food-list-control {
+    right: 0;
+    height: 100%;
+    backgroundColor: black;
+    width: 50px;
+    display: block;
+}
+
 .loader {
     border: 8px solid #f3f3f3;
     border-top: 8px solid #3498db;
