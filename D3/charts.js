@@ -207,7 +207,7 @@ function FoodCategoryChart(){
                 // Create a new object with the required properties
                 transformed.push({
                     date: date,
-                    FoodGroup: foodRecord.FoodGroup,
+                    FoodGroup: foodRecord.FoedevareGruppe,
                     amount: item.amount
                 });
                 console.log(transformed[transformed.length-1]);

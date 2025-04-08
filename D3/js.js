@@ -164,6 +164,12 @@ function setCRUDList() {
         element.innerText = f.FoedevareNavn.split(",")[0];
         element.classList.add('food-on-list');
 
+        /*let foodNameElement = document.createElement("div");
+        foodNameElement.innerText = f.FoedevareNavn.split(",")[0];
+        element.append(foodNameElement);
+        foodNameElement.style.float = "left";*/
+
+
         let amountElement = document.createElement("div");
         element.append(amountElement);
         amountElement.classList.add('food-list-control');

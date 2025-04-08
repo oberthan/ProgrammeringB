@@ -10,28 +10,24 @@ h1 {
     margin-bottom: 10px;
 }
 
-/* Overall container: two equal halves */
 .container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-/* Left side container: split into a top row (with two columns) and a bottom row */
 .left-container {
     display: grid;
     grid-template-rows: auto auto;
     gap: 20px;
 }
 
-/* Top row on the left: two columns */
 .top-left {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-/* Extra left div in top row */
 .left-div {
     background: #fff;
     padding: 15px;
@@ -39,7 +35,6 @@ h1 {
     border-radius: 8px;
 }
 
-/* Calendar container styles remain mostly the same */
 .calendar-container {
     background: #fff;
     padding: 15px;
@@ -47,14 +42,12 @@ h1 {
     border-radius: 8px;
 }
 
-/* Charts container: takes up the entire right half */
 .charts-container {
     background: #fff;
     padding: 10px;
     border-radius: 8px;
 }
 
-/* Rest of your CSS remains unchanged... */
 svg {
     background: white;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -95,7 +88,6 @@ svg {
     background: #0056b3;
 }
 
-/* Highlight for current day */
 .current-day rect {
     stroke: #ff5722;
     stroke-width: 3;
@@ -113,7 +105,6 @@ svg {
     vertical-align: middle;
 }
 
-/* Chart navigation tabs */
 .chart-tabs {
     text-align: center;
     margin-bottom: 10px;
@@ -134,13 +125,11 @@ svg {
     border-color: #007BFF;
 }
 
-/* Chart area */
 #chartArea {
     width: 100%;
     height: 200px;
 }
 
-/* Food input panel styling */
 #foodInput {
     padding: 15px;
     border: 1px solid #ccc;
@@ -221,13 +210,19 @@ svg {
     margin-bottom: 2px;
     border-radius: 2px;
     text-align: left;
+    position: relative;
 }
 .food-list-control {
     right: 0;
+    top: 0;
     height: 100%;
-    background-color: black;
-    width: 50px;
-    display: block;
+    background-color: transparent;
+    border-left: 2px solid #ececec;
+    width: 100px;
+    position: absolute;
+    max-width: 33%;
+    /*float: right;*/
+
 }
 
 .loader {
