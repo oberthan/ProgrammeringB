@@ -225,7 +225,7 @@ svg {
 .food-list-control {
     right: 0;
     height: 100%;
-    backgroundColor: black;
+    background-color: black;
     width: 50px;
     display: block;
 }
