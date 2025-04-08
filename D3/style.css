@@ -53,7 +53,6 @@ svg {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     border-radius: 8px;
     display: block;
-    margin: 20px auto;
 }
 
 .day-text {
@@ -207,7 +206,7 @@ svg {
     background-color: white;
     font-size: smaller;
     padding: 15px;
-    margin-bottom: 2px;
+    /*margin-bottom: 2px;*/
     border-radius: 2px;
     text-align: left;
     position: relative;
@@ -215,13 +214,13 @@ svg {
 .food-list-control {
     right: 0;
     top: 0;
-    height: 100%;
+    height: 80%;
     background-color: transparent;
-    border-left: 2px solid #ececec;
     width: 100px;
     position: absolute;
-    max-width: 33%;
+    max-width: 50%;
     /*float: right;*/
+
 
 }
 

@@ -75,6 +75,9 @@ async function loadFoodDatabase(url) {
 function saveFoodDatabase(){
     localStorage.setItem("localDatabase", JSON.stringify(foodDatabase));
 }
+function saveFooddata() {
+    localStorage.setItem(foodDataKey, JSON.stringify(foodData));
+}
 
 function processFoodData(jsonData) {
     foodDatabase = jsonData;
@@ -106,76 +109,6 @@ function initFoodDropdown() {
     });
 }
 
-
-// Function to update the vertical stacked bar for a day.
-function updateVerticalBar(barGroup, data) {
-    barGroup.selectAll("*").remove();
-    const dayCell = d3.select(barGroup.node().parentNode);
-    dayCell.selectAll("text").filter((x, y) =>y !== 0).remove();
-
-    if (data.length === 0) return;
-    // Calculate the total amount for the day.
-    const totalAmount = d3.sum(data, d => d.amount);
-    // Create stacked data with cumulative y-values.
-    let cumulative = 0;
-    const stackedData = data.map(d => {
-        const y0 = cumulative;
-        cumulative += d.amount;
-        return { ...d, y0: y0, y1: cumulative };
-    });
-
-    // Data join on segments using food as the key.
-    const segments = barGroup.selectAll("g.segment")
-        .data(stackedData, d => d.food);
-
-    // ENTER: Create new segments.
-    const segEnter = segments.enter()
-        .append("g")
-        .attr("class", "segment");
-
-    segEnter.append("rect")
-        .attr("x", 0)
-        .attr("width", barWidth)
-        .attr("y", d => (cellHeight-2) * (d.y0 / totalAmount))
-        .attr("height", d => (cellHeight-2) * (d.amount / totalAmount))
-        .attr("fill", d => colorScale(d.food));
-
-    data.forEach((d, i) => {
-    dayCell.append("text")
-        .attr("x", padding+5)
-        .attr("y", padding+32+10*i)
-        .attr("class", "day-text")
-        .attr("fill", colorScale(d.food))
-        .attr("font-weight", "bold")
-        .text(foodDatabase.filter(it => it["FoodID"] === d.food)[0]["FoedevareNavn"]);
-    });
-}
-
-function setCRUDList() {
-    let fooda = foodData[selectedDate];
-
-    let listDiv = document.querySelector(".current-day-foods");
-    listDiv.innerHTML = '';
-
-    fooda.forEach(d => {
-        let element = document.createElement("div");
-        listDiv.append(element);
-        let f = foodDatabase.find(f => f["FoodID"] === d.food)
-        element.innerText = f.FoedevareNavn.split(",")[0];
-        element.classList.add('food-on-list');
-
-        /*let foodNameElement = document.createElement("div");
-        foodNameElement.innerText = f.FoedevareNavn.split(",")[0];
-        element.append(foodNameElement);
-        foodNameElement.style.float = "left";*/
-
-
-        let amountElement = document.createElement("div");
-        element.append(amountElement);
-        amountElement.classList.add('food-list-control');
-
-    })
-}
 
 // Main function to render the calendar.
 function renderCalendar(year, month, dir = 1) {
