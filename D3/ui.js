@@ -54,8 +54,9 @@ d3.select("#submitFood").on("click", () => {
     // Clear input fields and hide panel.
     d3.select("#foodName").property("value", "");
     d3.select("#foodAmount").property("value", "");
-    d3.select("#foodInput").style("display", "none");
-    selectedDate = null;
+    // d3.select("#foodInput").style("background", "grey");
+
+    // selectedDate = null;
 
     saveFooddata();
     setCRUDList()
@@ -65,7 +66,7 @@ d3.select("#submitFood").on("click", () => {
 d3.select("#cancelFood").on("click", () => {
     d3.select("#foodName").property("value", "");
     d3.select("#foodAmount").property("value", "");
-    d3.select("#foodInput").style("display", "none");
+    d3.select("#foodInput").style("background", "#edecec");
     selectedDate = null;
 });
 

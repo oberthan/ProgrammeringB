@@ -65,7 +65,7 @@ async function loadFoodDatabase(url) {
                 const worksheet = workbook.Sheets[sheetName];
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
                 ShowLoading(false);
-                console.log(jsonData);
+
                 processFoodData(jsonData);
                 renderCalendar(currentYear, currentMonth);
             })
@@ -99,7 +99,6 @@ function initFoodDropdown() {
     foodDatabase.forEach((foodItem) => {
         let foedevareNavn = foodItem['FoedevareNavn'];
         if (foedevareNavn.toLowerCase().includes(search) || foodItem["FoodName"].toLowerCase().includes(search) ){
-            console.log("Found one!", foodItem["FoodName"]);
             var el = document.createElement("div");
             el.textContent = foedevareNavn;
             el.onclick = function() {d3.select("#foodName").property("value", foedevareNavn);};
@@ -216,8 +215,8 @@ function renderCalendar(year, month, dir = 1) {
                 cell.classed("selected-day", true);
 
                 selectedDate = dateStr;
-                d3.select("#selectedDateLabel").text(`Add food for ${dateStr}`);
-                d3.select("#foodInput").style("display", "block");
+                d3.select("#selectedDateLabel").text(`Tilføj fødevare til ${dateStr}`);
+                d3.select("#foodInput").style("background", "white");
 
                 setCRUDList()
             });

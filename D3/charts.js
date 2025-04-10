@@ -3,20 +3,29 @@
       ============================ */
 // Placeholder functions for chart drawing.
 function drawPieChart() {
-    const chartSvg = d3.select("#chartArea");
-    chartSvg.selectAll("*").remove();
+    const chartcontainer = d3.select(".charts-container");
+    chartcontainer.selectAll("svg").remove();
     // Use foodData to create a summary; here we use dummy data.
     // For example, sum the total amounts per food across all days.
     const summary = {};
     for (const date in foodData) {
         foodData[date].forEach(d => {
-            summary[d.food] = (summary[d.food] || 0) + d.amount;
+            summary[d.food] = Number(summary[d.food] || 0) + Number(d.amount);
         });
     }
+
+    // pieChartMass(chartSvg, data);
+    pieChartEnergy(chartcontainer, summary);
+}
+function pieChartMass(chartcontainer, summary){
     const data = Object.entries(summary).map(([food, amount]) => ({food, amount}));
+
+    let chartSvg = chartcontainer.append("svg");
 
     let chartsContainer = document.querySelector(".charts-container");
     let heightContainer = chartsContainer.offsetHeight;
+
+
 
     const width = chartSvg.attr("width") || 800;
     const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight;;
@@ -24,7 +33,7 @@ function drawPieChart() {
     const g = chartSvg
         .attr("width", width)
         .attr("height", height)
-        .attr("style", `max-width: 100%; height: ${height};`)
+        .attr("style", `max-width: 50%; height: ${height};`)
         .attr("viewBox", [0, 0, width, height])
         .append("g")
         .attr("transform", `translate(${width/2}, ${height/2})`);
@@ -41,7 +50,45 @@ function drawPieChart() {
         .attr("stroke", "#fff")
         .attr("stroke-width", 1)
         .append("title")
-        .text(d => `${foodDatabase.find(f => f["FoodID"] == d.data.food).FoedevareNavn}\n${d.data.amount}g`);
+        .text(d => `${foodDatabase.find(f => f["FoodID"] == d.data.food).FoedevareNavn}\n${d.data.amount} g`);
+
+}
+
+function pieChartEnergy(chartcontainer, summary){
+    const data = Object.entries(summary).map(([food, amount]) => ({food, amount, foodName: foodDatabase.find(f => f["FoodID"] == food)["FoedevareNavn"], foodEnergy: foodDatabase.find(f => f["FoodID"] == food)["Energi (kJ)"]}));
+
+    let chartSvg = chartcontainer.append("svg");
+    
+
+    let chartsContainer = document.querySelector(".charts-container");
+    let heightContainer = chartsContainer.offsetHeight;
+
+    // let updatedData = Object.entries(data).map(([food, amount]) => ({food, amount, foodName: foodDatabase.find(f => f["FoodID"] == food)["FoedevareNavn"], foodEnergy: foodDatabase.find(f => f["FoodID"] == food)["Energi (kJ)"]}));
+
+    const width = chartSvg.attr("width") || 800;
+    const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight;;
+    const radius = Math.min(width, height) / 2;
+    const g = chartSvg
+        .attr("width", width)
+        .attr("height", height)
+        .attr("style", `max-width: 50%; height: ${height};`)
+        .attr("viewBox", [0, 0, width, height])
+        .append("g")
+        .attr("transform", `translate(${width/2}, ${height/2})`);
+
+    const pie = d3.pie().value(d => d.amount*d.foodEnergy/100)(data);
+    const arc = d3.arc().innerRadius(0).outerRadius(radius);
+
+    g.selectAll("path")
+        .data(pie)
+        .enter()
+        .append("path")
+        .attr("d", arc)
+        .attr("fill", d => colorScale(Number(d.data.food)))
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1)
+        .append("title")
+        .text(d => `${d.data.foodName}\n${Math.round(d.data.amount*d.data.foodEnergy/100)} kJ`);
 
 }
 
@@ -67,7 +114,6 @@ function FoodCategoryChart(){
 
     const transformed = [];
 
-    console.log(foodData);
     for (const date in foodData) {
         // Iterate over each food entry for the given date
         foodData[date].forEach(item => {
@@ -80,14 +126,13 @@ function FoodCategoryChart(){
                     FoodGroup: foodRecord.FoedevareGruppe,
                     amount: item.amount
                 });
-                console.log(transformed[transformed.length-1]);
+
             } else {
                 // Optionally handle the case where a food id isn't found in the database
                 console.warn(`Food with ID ${item.food} not found in the database.`);
             }
         });
     }
-    console.log(transformed);
 
     transformed.forEach(d => {
         d.date = new Date(d.date);
