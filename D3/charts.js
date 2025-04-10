@@ -14,7 +14,7 @@ function drawPieChart() {
         });
     }
 
-    // pieChartMass(chartSvg, data);
+    pieChartMass(chartcontainer, summary);
     pieChartEnergy(chartcontainer, summary);
 }
 function pieChartMass(chartcontainer, summary){
@@ -25,18 +25,19 @@ function pieChartMass(chartcontainer, summary){
     let chartsContainer = document.querySelector(".charts-container");
     let heightContainer = chartsContainer.offsetHeight;
 
+    console.log(`Mass: ${heightContainer}`);
 
 
     const width = chartSvg.attr("width") || 800;
-    const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight;;
+    const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight-30;
     const radius = Math.min(width, height) / 2;
     const g = chartSvg
         .attr("width", width)
         .attr("height", height)
-        .attr("style", `max-width: 50%; height: ${height};`)
+        .attr("style", `max-width: 50%; height: ${height}; float: left;`)
         .attr("viewBox", [0, 0, width, height])
         .append("g")
-        .attr("transform", `translate(${width/2}, ${height/2})`);
+        .attr("transform", `translate(${width/2}, ${height/2 - 60})`);
 
     const pie = d3.pie().value(d => d.amount)(data);
     const arc = d3.arc().innerRadius(0).outerRadius(radius);
@@ -62,19 +63,25 @@ function pieChartEnergy(chartcontainer, summary){
 
     let chartsContainer = document.querySelector(".charts-container");
     let heightContainer = chartsContainer.offsetHeight;
+    console.log(`Energy: ${heightContainer}`);
 
     // let updatedData = Object.entries(data).map(([food, amount]) => ({food, amount, foodName: foodDatabase.find(f => f["FoodID"] == food)["FoedevareNavn"], foodEnergy: foodDatabase.find(f => f["FoodID"] == food)["Energi (kJ)"]}));
 
     const width = chartSvg.attr("width") || 800;
-    const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight;;
+    const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight-30;
     const radius = Math.min(width, height) / 2;
     const g = chartSvg
         .attr("width", width)
         .attr("height", height)
-        .attr("style", `max-width: 50%; height: ${height};`)
+        .attr("style", `max-width: 50%; height: ${height}; float: left;`)
         .attr("viewBox", [0, 0, width, height])
         .append("g")
-        .attr("transform", `translate(${width/2}, ${height/2})`);
+        .attr("transform", `translate(${width/2}, ${height/2 - 60})`);
+
+    chartSvg
+        .append("text")
+        .attr("transform", `translate(${width/2}, ${height/2 + radius}`)
+        .text(`I alt: ${Object.values(data).reduce((a, b) => a.foodEnergy + b.foodEnergy, 0)}`)
 
     const pie = d3.pie().value(d => d.amount*d.foodEnergy/100)(data);
     const arc = d3.arc().innerRadius(0).outerRadius(radius);
@@ -94,15 +101,17 @@ function pieChartEnergy(chartcontainer, summary){
 
 
 function FoodCategoryChart(){
-    const chartSvg = d3.select("#chartArea");
-    chartSvg.selectAll("*").remove();
+    const chartcontainer = d3.select(".charts-container");
+    chartcontainer.selectAll("svg").remove();
+
+    let chartSvg = chartcontainer.append("svg");
 
     let chartsContainer = document.querySelector(".charts-container");
     let heightContainer = chartsContainer.offsetHeight;
 
     // Specify the chart’s dimensions.
     const width = chartSvg.attr("width") || 800;
-    const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight;
+    const height = chartSvg.attr("height") || heightContainer - document.querySelector(".chart-tabs").offsetHeight-30;
     const marginTop = 10;
     const marginRight = 30;
     const marginBottom = 30;
