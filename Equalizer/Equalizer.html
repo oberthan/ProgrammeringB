@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>p5.js FFT Equalizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.5/lib/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/addons/p5.sound.min.js"></script>
+    <style>
+        body { background: #111; color: #fff; font-family: sans-serif; text-align: center; }
+        canvas { background: black; display: block; margin: 20px auto; }
+    </style>
+</head>
+<body>
+<h1>p5.js FFT Equalizer</h1>
+<script>
+    // const FFT = require('fft.js');
+
+    let bins = 16;
+
+    let mic, fft;
+    let sliders = [], freqs = [100, 300, 1000, 3000, 8000];
+
+    function setup() {
+        createCanvas(800, 600);
+
+        // Create a microphone input
+        mic = new p5.AudioIn();
+        mic.start();
+
+        // Create an FFT analyzer
+        fft = new p5.FFT(0, bins);
+
+        fft.setInput(mic);
+
+        for (let i = 0; i < freqs.length; i++){
+            let slider = createSlider(0, 2, 1, 0.01); // Gain range: 0–2x
+            slider.position(250 + i * 150, height+70+100);
+            slider.style('transform', 'rotate(-90deg)');
+            sliders.push(slider);
+        }
+    }
+
+    function synthesizeWave(spectrum, samples) {
+        let wave = new Array(samples).fill(0);
+        let nyquist = sampleRate() / 2;
+        let binCount = spectrum.length;
+
+        for (let i = 1; i < binCount; i++) {
+            let amp = map(spectrum[i], 0, 255, 0, 1); // normalize amplitude
+            let freq = i * nyquist / binCount;
+
+            for (let t = 0; t < samples; t++) {
+                let time = t / sampleRate();
+                wave[t] += amp * sin(TWO_PI * freq * time);
+            }
+        }
+
+        // Normalize wave
+        let maxAmp = Math.max(...wave.map(Math.abs));
+        if (maxAmp > 0) {
+            wave = wave.map(v => v / maxAmp);
+        }
+
+        return wave;
+    }
+
+    function draw() {
+        background(0);
+
+        // Get frequency spectrum from FFT
+        let spectrum = fft.analyze();
+
+        // Visualize the frequency spectrum
+        noStroke();
+        fill(0, 255, 0); // Green bars
+
+        let minLog = Math.log2(1);
+        let maxLog = Math.log2(spectrum.length);
+
+        for (let i = 1; i < spectrum.length; i++) {
+            let logIndex = Math.log2(i);
+            let x = map(logIndex, minLog, maxLog, 0, width);
+            let nextLogIndex = Math.log2(i + 1);
+            let nextX = map(nextLogIndex, minLog, maxLog, 0, width);
+            let barWidth = nextX - x;
+
+            let barHeight = map(spectrum[i], 0, 255, 0, height/2);
+            fill(0, 255, 0);
+            rect(x, height/2 - barHeight, barWidth, barHeight);
+        }
+
+        fill(0, 0, 255); // Green bars
+
+        let newSpectrum = applyEQ(spectrum);
+        for (let i = 1; i < newSpectrum.length; i++) {
+            let logIndex = Math.log2(i);
+            let x = map(logIndex, minLog, maxLog, 0, width);
+            let nextLogIndex = Math.log2(i + 1);
+            let nextX = map(nextLogIndex, minLog, maxLog, 0, width);
+            let barWidth = nextX - x;
+
+            let barHeight = map(newSpectrum[i], 0, 255, 0, height/2);
+            fill(0, 0, 255);
+            rect(x, height - barHeight, barWidth, barHeight);
+        }
+
+
+        // Frequency labels (log scale)
+        let nyquist = sampleRate() / 2;
+        let minLogFreq = Math.log2(20); // start labeling from 20 Hz
+        let maxLogFreq = Math.log2(nyquist);
+
+        textSize(10);
+        fill(200);
+        noStroke();
+        textAlign(CENTER, TOP);
+
+        // Frequencies to label (log spaced, approx.)
+        let labelFreqs = [20, 50, 100, 200, 440, 600, 1000, 2000, 5000, 10000, 16000];
+
+        for (let freq of labelFreqs) {
+            if (freq >= nyquist) continue; // skip anything above Nyquist
+
+            let logFreq = Math.log2(freq);
+            let x = map(logFreq, minLogFreq, maxLogFreq, 0, width);
+            text(freq + " Hz", x, height - 15);
+            stroke(100);
+            line(x, height - 20, x, height); // optional vertical tick
+        }
+
+        let synthesizedWave = synthesizeWave(newSpectrum, bins);
+        playWaveform(synthesizedWave)
+
+    }
+    function applyEQ(spectrum) {
+        let newArr = [];
+        for (let i = 0; i < spectrum.length; i++) {
+            let gain = sliders[floor(i*sliders.length/spectrum.length)].value();
+            newArr[i] =gain*spectrum[i]; // short fade time
+        }
+        return newArr;
+    }
+    function playWaveform(waveformArray) {
+        let context = getAudioContext();
+        let buffer = context.createBuffer(1, waveformArray.length, sampleRate());
+        let data = buffer.getChannelData(0);
+
+        for (let i = 0; i < waveformArray.length; i++) {
+            data[i] = waveformArray[i];
+        }
+
+        let source = context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(context.destination);
+        source.start();
+    }
+</script>
+</body>
+</html>
