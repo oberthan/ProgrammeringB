@@ -14,10 +14,10 @@ class Graf {
         this.addOneWayEdge(v, m,w1, false);
         this.addOneWayEdge(m, v,w2, false);
     }
-    addOneWayEdge(v, m, w, e = true){
+    addOneWayEdge(v, m, w =1, e = true){
         if(e) this.e++;
         this.nK[v].push(m);
-        this.vK[v].push(w);
+        this.vK[v][`${m}`] = w;
     }
     getNK(v){
         return this.nK[v];
@@ -64,7 +64,7 @@ class Graf {
             let weights = this.vK[u];
 
             for (let i = 0; i < neighbors.length; i++) {
-                let alt = dist[u] + weights[i];
+                let alt = dist[u] + weights[neighbors[i]];
                 if (alt < dist[neighbors[i]]) {
                     dist[neighbors[i]] = alt;
                     prev[neighbors[i]] = u;
