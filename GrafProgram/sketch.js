@@ -5,13 +5,14 @@ let highlightedPath = null;
 let selectedNodes = [];
 
 let animationIndex = -1;
-let animationDelay = 500; // ms between steps
+let animationDelay = 100; // ms between steps
 let lastStepTime = 0;
 
 let pathOutput;
 let draggingVertex = -1;
 let edgeMode = false;
 let tempEdge = null; // show preview while connecting
+let randomWebButton;
 
 function SetupGraf() {
     graf = new Graf(vertices.length);
@@ -23,14 +24,17 @@ function setup() {
     createCanvas(600, 500);
     resetGraph();
 
-    let resetButton = createButton("🔄 Reset Graph");
+    let resetButton = createButton("Reset Graph");
     resetButton.mousePressed(resetGraph);
 
-    let edgeButton = createButton("🔗 Toggle Edge Mode");
+    let edgeButton = createButton("Toggle Edge Mode");
     edgeButton.mousePressed(() => {
         edgeMode = !edgeMode;
         tempEdge = null;
     });
+
+    let randomWebButton = createButton("Random Graph");
+    randomWebButton.mousePressed(generateRandomGraph)
 
     pathOutput = createP("Path: (none)").style("font-size", "16px");
 }
@@ -70,6 +74,27 @@ function distBetween(a, b) {
     return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);
 }
 
+function generateRandomGraph() {
+    // Clear existing edges
+    for (let i = 0; i < graf.v; i++) {
+        graf.nK[i] = [];
+        graf.vK[i] = {};
+    }
+
+    // Randomly connect vertices
+    for (let i = 0; i < graf.v; i++) {
+        // Random number of edges per vertex (1 to 3)
+        let count = Math.floor(Math.random() * 0) + 2;
+
+        while (graf.nK[i].length < count) {
+            let j = Math.floor(Math.random() * graf.v);
+            if (j !== i && !graf.nK[i].includes(j)) {
+                addEdge(i, j); // adds both directions
+            }
+        }
+    }
+}
+
 function draw() {
     background(245);
 
@@ -101,6 +126,13 @@ function draw() {
                 strokeWeight(1);
             }
             line(vertex[0], vertex[1], toVert[0], toVert[1]);
+            let midX = (vertex[0] + toVert[0])/2;
+            let midY = (vertex[1] + toVert[1])/2;
+            let w = graf.vK[i][nK];
+            fill(0);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            text(nf(w, 1, 1), midX, midY - 10);
         });
     }
 
@@ -163,14 +195,47 @@ function draw() {
 
 function updateEdgeWeights() {
     for (let i = 0; i < graf.v; i++) {
-        for (let k = 0; k < graf.nK[i].length; k++) {
-            let neighbor = graf.nK[i][k];
-            let d = distBetween(vertices[i], vertices[neighbor]);
-
-            // update correct slot (dictionary style)
-            graf.vK[i][neighbor] = d;
+        for (let neighbor of graf.nK[i]) {
+            graf.vK[i][neighbor] = distBetween(vertices[i], vertices[neighbor]);
         }
     }
+}
+
+function findEdgeUnderMouse() {
+    for (let i = 0; i < graf.v; i++) {
+        for (let neighbor of graf.nK[i]) {
+            // avoid double checking the same undirected edge
+            if (i > neighbor) continue;
+
+            let v1 = vertices[i];
+            let v2 = vertices[neighbor];
+            if (distToSegment(mouseX, mouseY, v1, v2) < 6) return [i, neighbor];
+        }
+    }
+    return null;
+}
+
+function distToSegment(px, py, v1, v2) {
+    let x = px, y = py;
+    let x1 = v1[0], y1 = v1[1];
+    let x2 = v2[0], y2 = v2[1];
+    let A = x - x1;
+    let B = y - y1;
+    let C = x2 - x1;
+    let D = y2 - y1;
+
+    let dot = A*C + B*D;
+    let len_sq = C*C + D*D;
+    let param = (len_sq !== 0) ? dot / len_sq : -1;
+
+    let xx, yy;
+    if (param < 0) { xx = x1; yy = y1; }
+    else if (param > 1) { xx = x2; yy = y2; }
+    else { xx = x1 + param*C; yy = y1 + param*D; }
+
+    let dx = x - xx;
+    let dy = y - yy;
+    return Math.sqrt(dx*dx + dy*dy);
 }
 
 function mousePressed() {
@@ -202,6 +267,17 @@ function mousePressed() {
             draggingVertex = i; // allow dragging
             return;
         }
+    }
+    let edgeClicked = findEdgeUnderMouse();
+    if (edgeClicked) {
+        let [a, b] = edgeClicked;
+        let newW = prompt(`Set new weight for edge ${a}-${b}`, graf.vK[a][b].toFixed(1));
+        if (newW !== null && !isNaN(newW)) {
+            let w = parseFloat(newW);
+            graf.vK[a][b] = w;
+            graf.vK[b][a] = w; // undirected edge
+        }
+        return; // skip vertex selection if edge clicked
     }
 }
 
